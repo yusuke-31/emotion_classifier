@@ -10,8 +10,14 @@ if not os.path.exists("saved_model"):
 
 # transformersから読み込み
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-model = AutoModelForSequenceClassification.from_pretrained("saved_model")
-tokenizer = AutoTokenizer.from_pretrained("saved_model")
+
+model = AutoModelForSequenceClassification.from_pretrained(
+    "saved_model",
+    local_files_only=True,
+    trust_remote_code=True
+)
+
+tokenizer = AutoTokenizer.from_pretrained("saved_model", local_files_only=True)
 
 # extra_info.pkl の読み込み
 with open("saved_model/extra_info.pkl", "rb") as f:
