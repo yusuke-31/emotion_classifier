@@ -112,33 +112,11 @@ if st.button("🎯 文を分析する"):
             st.pyplot(plt.gcf())
 
             # --- 文ごとの感情スコア棒グラフ（任意） ---
-            st.write("### 🔍 各文の感情スコア")
-            for _, row in df_result.iterrows():
-                st.write(f"**文{int(row['ID'])}: {row['文']}**")
-                scores = row[emotion_names]
-                fig, ax = plt.subplots(figsize=(6, 2))
-                sns.barplot(x=scores.index, y=scores.values, ax=ax)
-                ax.set_ylim(0, 1)
-                st.pyplot(fig)
-
-# --- Hugging Face アップロード UI ---
-st.markdown("---")
-st.header("🚀 ローカルモデルフォルダをHugging Face Hub にアップロード")
-
-local_folder = st.text_input("📁 アップロードするローカルフォルダのパスを入力してください", "saved_model")
-
-if st.button("📤 アップロード開始"):
-    if not os.path.isdir(local_folder):
-        st.error(f"指定されたフォルダが存在しません: {local_folder}")
-    else:
-        try:
-            with st.spinner("Hugging Face Hub へアップロード中…"):
-                api.upload_folder(
-                    folder_path=local_folder,
-                    repo_id=model_repo,
-                    repo_type="model",
-                    ignore_patterns=["*.git*", "*.zip"],
-                )
-            st.success("✅ アップロードが完了しました！")
-        except Exception as e:
-            st.error(f"❌ アップロード中にエラーが発生しました: {e}")
+            #st.write("### 🔍 各文の感情スコア")
+            #for _, row in df_result.iterrows():
+                #st.write(f"**文{int(row['ID'])}: {row['文']}**")
+                #scores = row[emotion_names]
+                #fig, ax = plt.subplots(figsize=(6, 2))
+                #sns.barplot(x=scores.index, y=scores.values, ax=ax)
+                #ax.set_ylim(0, 1)
+                #st.pyplot(fig)
