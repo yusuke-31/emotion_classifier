@@ -1,45 +1,37 @@
 import os
-import zipfile
 import pickle
-import requests
-
-from huggingface_hub import login
-
-hf_token = os.getenv("HF_TOKEN")
-login(token=hf_token)
-
-# モデルが解凍されていなければ saved_model.zip を展開
-if not os.path.exists("saved_model"):
-    with zipfile.ZipFile("saved_model.zip", "r") as zip_ref:
-        zip_ref.extractall("saved_model")
-
-# transformersから読み込み
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-
-model = AutoModelForSequenceClassification.from_pretrained(
-    "saved_model",
-    local_files_only=True,
-    trust_remote_code=True
-)
-
-tokenizer = AutoTokenizer.from_pretrained("saved_model", local_files_only=True)
-
-# extra_info.pkl の読み込み
-with open("saved_model/extra_info.pkl", "rb") as f:
-    extra_info = pickle.load(f)
-
-emotion_names = extra_info["emotion_names"]
 import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import re
 import spacy
 import japanize_matplotlib
 
-from transformers import BertJapaneseTokenizer, BertForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+# HFトークンは環境変数から取得してloginが必要ならログインする
+from huggingface_hub import login
+hf_token = os.getenv("HF_TOKEN")
+if hf_token:
+    login(token=hf_token)
+
+# Hugging Face Hub上のモデルリポジトリ名（例）
+model_repo = "yusuke-31/streamlit_deploy1"
+
+# transformersから直接読み込み（Hubからダウンロード）
+model = AutoModelForSequenceClassification.from_pretrained(model_repo)
+tokenizer = AutoTokenizer.from_pretrained(model_repo)
+
+# extra_info.pkl はHubにアップロードされていればローカルに落とすかURL経由で取得可能
+import requests
+import io
+
+extra_info_url = f"https://huggingface.co/{model_repo}/resolve/main/extra_info.pkl"
+response = requests.get(extra_info_url)
+extra_info = pickle.load(io.BytesIO(response.content))
+emotion_names = extra_info["emotion_names"]
 
 # Softmax関数
 def np_softmax(x):
@@ -50,26 +42,26 @@ def np_softmax(x):
 def analyze_emotion(text):
     model.eval()
     tokens = tokenizer(text, truncation=True, return_tensors="pt")
-    tokens.to(model.device)
-    preds = model(**tokens)
-    prob = np_softmax(preds.logits.cpu().detach().numpy()[0])
+    tokens = {k: v.to(model.device) for k, v in tokens.items()}
+    with torch.no_grad():
+        preds = model(**tokens)
+    prob = np_softmax(preds.logits.cpu().numpy()[0])
     return {n: p for n, p in zip(emotion_names, prob)}
 
-# GiNZAモデルの読み込み
+# GiNZAモデルの読み込み（初回は時間かかるのでキャッシュ）
 @st.cache_resource
 def load_nlp():
     return spacy.load("ja_ginza")
 
 nlp = load_nlp()
 
-# 文分割関数（spaCy + GiNZA）
 def split_sentences(text):
     doc = nlp(text)
     return [sent.text.strip() for sent in doc.sents if sent.text.strip()]
 
 st.title("日本語文＆感情分析")
 
-user_input = st.text_area("日本語の文章を入力してください","今のあなたの気持ちはどのようなものでしょう。調査してみましょう。", height=200)
+user_input = st.text_area("日本語の文章を入力してください", "今のあなたの気持ちはどのようなものでしょう。調査してみましょう。", height=200)
 
 if st.button("文を分析する"):
     if not user_input.strip():
@@ -96,15 +88,10 @@ if st.button("文を分析する"):
             st.success(f"{len(df_result)} 文を検出しました。")
             st.dataframe(df_result, use_container_width=True)
 
-        mean_emotions = df_result[emotion_names].mean()
-        if isinstance(mean_emotions, pd.Series):
-            mean_emotions = mean_emotions.reset_index()
+            mean_emotions = df_result[emotion_names].mean().reset_index()
             mean_emotions.columns = ['感情', '平均確率']
-        else:
-            # 1列だけの場合
-            mean_emotions = pd.DataFrame({'感情': [emotion_names[0]], '平均確率': [mean_emotions]})
 
-        st.write("### 全体の平均感情スコア")
-        plt.figure(figsize=(8, 3))
-        sns.barplot(x='感情', y='平均確率', data=mean_emotions)
-        st.pyplot(plt.gcf())
+            st.write("### 全体の平均感情スコア")
+            plt.figure(figsize=(8, 3))
+            sns.barplot(x='感情', y='平均確率', data=mean_emotions)
+            st.pyplot(plt.gcf())
