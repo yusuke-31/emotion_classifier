@@ -3,6 +3,11 @@ import zipfile
 import pickle
 import requests
 
+from huggingface_hub import login
+
+hf_token = os.getenv("HF_TOKEN")
+login(token=hf_token)
+
 # モデルが解凍されていなければ saved_model.zip を展開
 if not os.path.exists("saved_model"):
     with zipfile.ZipFile("saved_model.zip", "r") as zip_ref:
