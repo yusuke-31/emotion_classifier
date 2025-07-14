@@ -15,7 +15,7 @@ from huggingface_hub import login, HfApi
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 # --- HFトークン取得＆ログイン ---
-hf_token = os.getenv("HF_TOKEN")
+hf_token = os.getenv("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")
 if not hf_token:
     st.error("環境変数 HF_TOKEN が設定されていません。")
     st.stop()
