@@ -16,7 +16,6 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 # --- HFトークン取得＆ログイン ---
 hf_token = st.secrets["HF_TOKEN"] # secretsに "HF_TOKEN" を設定しておくこと
-login(token=hf_token)
 api = HfApi(token=hf_token)
 
 # --- モデルリポジトリ指定 ---
@@ -25,9 +24,9 @@ model_repo = "yusuke-31/streamlit_deploy1"
 # --- transformersからモデル＆トークナイザー読み込み ---
 @st.cache_resource(show_spinner="モデルを読み込んでいます…")
 def load_model_and_tokenizer():
-    model = AutoModelForSequenceClassification.from_pretrained(model_repo)
+    model = AutoModelForSequenceClassification.from_pretrained(model_repo, use_auth_token=hf_token)
+    tokenizer = AutoTokenizer.from_pretrained(model_repo, use_auth_token=hf_token)
     model.eval()  # 一度だけ呼ぶ
-    tokenizer = AutoTokenizer.from_pretrained(model_repo)
     return model, tokenizer
 
 model, tokenizer = load_model_and_tokenizer()
@@ -36,7 +35,8 @@ model, tokenizer = load_model_and_tokenizer()
 @st.cache_data(show_spinner="感情ラベルを読み込んでいます…")
 def load_extra_info():
     extra_info_url = f"https://huggingface.co/{model_repo}/resolve/main/extra_info.pkl"
-    response = requests.get(extra_info_url)
+    headers = {"Authorization": f"Bearer {hf_token}"}
+    response = requests.get(extra_info_url, headers=headers)
     return pickle.load(io.BytesIO(response.content))
 
 extra_info = load_extra_info()
