@@ -15,7 +15,7 @@ from huggingface_hub import login, HfApi
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 # --- HFトークン取得＆ログイン ---
-hf_token = st.secrets["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"]  # secretsに "HF_TOKEN" を設定しておくこと
+hf_token = st.secrets["HF_TOKEN"] # secretsに "HF_TOKEN" を設定しておくこと
 login(token=hf_token)
 api = HfApi(token=hf_token)
 
