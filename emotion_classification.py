@@ -24,8 +24,8 @@ model_repo = "yusuke-31/streamlit_deploy1"
 # --- transformersからモデル＆トークナイザー読み込み ---
 @st.cache_resource(show_spinner="モデルを読み込んでいます…")
 def load_model_and_tokenizer():
-    model = AutoModelForSequenceClassification.from_pretrained(model_repo, use_auth_token=hf_token)
-    tokenizer = AutoTokenizer.from_pretrained(model_repo, use_auth_token=hf_token)
+    model = AutoModelForSequenceClassification.from_pretrained(model_repo, token=hf_token)
+    tokenizer = AutoTokenizer.from_pretrained(model_repo, token=hf_token)
     model.eval()  # 一度だけ呼ぶ
     return model, tokenizer
 
