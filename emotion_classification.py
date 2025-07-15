@@ -69,7 +69,7 @@ def split_sentences(text):
     return [sent.text.strip() for sent in doc.sents if sent.text.strip()]
 
 # --- Streamlit UI ---
-st.title("🌈 日本語文＆感情分析ダッシュボード")
+st.title("日本語文感情分析")
 
 user_input = st.text_area(
     "📝 日本語の文章を入力してください：",
