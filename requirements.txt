@@ -97,7 +97,7 @@ thinc==8.3.6
 threadpoolctl==3.6.0
 tokenizers==0.21.1
 toml==0.10.2
-torch==2.5.1
+torch==2.4.0
 torchaudio==2.7.1
 torchvision==0.22.1
 tornado==6.5.1
